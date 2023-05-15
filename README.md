@@ -1,2 +1,2 @@
 # ECE5760-Website
-https://pages.github.com/RyanChanTech/ECE5760-Website.github.io/
+https://ryanchantech.github.io/ECE5760-Website/
