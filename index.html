@@ -48,11 +48,11 @@
           <ul class="nav navbar-nav">
             <li class="active"><a href="#">Home</a></li>
             <li><a href="#intro">Introduction</a></li>
-            <li><a href="#obj">Project Objective</a></li>
-            <li><a href="#design">Design</a></li>
-            <li><a href="#drawings">Drawings</a></li>
+            <li><a href="#obj">High Level Design</a></li>
+            <li><a href="#design">Program and Hardware Design</a></li>
             <li><a href="#testing">Testing</a></li>
             <li><a href="#result">Result</a></li>
+            <li><a href="#conclusion">Conclusion</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -61,21 +61,22 @@
     <div class="container">
 
       <div class="starter-template">
-        <h1>Awesome ECE5725 Project</h1>
-        <p class="lead">Really Awesome<br>A Project By Jane Doe.</p>
+        <h1>Dancing Boids</h1>
+        <p class="lead">ECE 5760 Final Project<br>By Amy Wang, Minjung Kwon, and Ryan Chan.</p>
       </div>
 
       <hr>
       <div class="center-block">
-          <iframe width="640" height="360" src="https://www.youtube.com/embed/GuM8vTq0jd4" frameborder="0" allowfullscreen></iframe>
+          <iframe width="640" height="360" src="https://www.youtube.com/embeded/watch?v=6UIeqExGgog&list=PLDqMkB5cbBA7nUwrxsLgtrOsce9UgJXJb&index=13&t=50s" frameborder="0" allowfullscreen></iframe>
           <h4 style="text-align:center;">Demonstration Video</h4>
       </div>
 
       <hr id="intro">
 
       <div style="text-align:center;">
-              <h2>Introduction</h2>
-              <p style="text-align: left;padding: 0px 30px;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum lorem nulla, consectetur at leo vel, pretium bibendum nisl. Cras blandit quam a enim ultrices, eu convallis enim posuere. Donec eleifend enim sed purus consectetur, vitae cursus lectus varius. Vivamus consectetur felis nec est venenatis posuere. Phasellus vitae aliquet erat. In laoreet lacinia mollis. Quisque iaculis nisl fermentum pharetra lobortis. Donec rhoncus dui sem, ac molestie leo tristique vel. Phasellus in nibh feugiat, fringilla lectus in, elementum magna. Etiam quis dui condimentum, tempus ex in, dapibus est. Cras ut congue augue. Donec ac enim ex. Ut id tristique risus, vel porttitor quam. Sed ultricies enim eu nibh porttitor, vel sodales enim feugiat. Fusce volutpat venenatis magna ac ultrices. Curabitur eget urna ut nulla mattis convallis non eu diam.</p>
+              <h2>Project Introduction</h2>
+              <p style="text-align: left;padding: 0px 30px;">One sentence "sound bite" that describes your project.</p>
+              <p style="text-align: left;padding: 0px 30px;">A summary of what you did and why.</p>
       </div>
 
     <hr id='obj'>
@@ -85,11 +86,13 @@
           <img class="img-rounded" src="pics/1.jpg" alt="Generic placeholder image" width="240" height="240">
           </div>
           <div class="col-md-8" style="font-size:18px;">
-          <h2>Project Objective:</h2>
+          <h2>High Level Design:</h2>
           <ul>
-              <li>some important objectives.some important objectives.some important objectives.some important objectives.</li>
-                <li>some other important objectives.</li>
-            <li>some not-that-important objectives.</li>
+              <li>Rationale and sources of your project idea</li>
+              <li>background math</li>
+              <li>logical structure</li>
+              <li>hardware/software tradeoffs</li>
+              <li>Discuss existing patents, copyrights, and trademarks which are relevant to your project.</li>
           </ul>
           </div>
       </div>
@@ -97,29 +100,51 @@
     <hr id='design'>
 
       <div style="text-align:center;">
-              <h2>Design</h2>
-              <p style="text-align: left;padding: 0px 30px;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum lorem nulla, consectetur at leo vel, pretium bibendum nisl. Cras blandit quam a enim ultrices, eu convallis enim posuere. Donec eleifend enim sed purus consectetur, vitae cursus lectus varius. Vivamus consectetur felis nec est venenatis posuere. Phasellus vitae aliquet erat. In laoreet lacinia mollis. Quisque iaculis nisl fermentum pharetra lobortis. Donec rhoncus dui sem, ac molestie leo tristique vel. Phasellus in nibh feugiat, fringilla lectus in, elementum magna. Etiam quis dui condimentum, tempus ex in, dapibus est. Cras ut congue augue. Donec ac enim ex. Ut id tristique risus, vel porttitor quam. Sed ultricies enim eu nibh porttitor, vel sodales enim feugiat. Fusce volutpat venenatis magna ac ultrices. Curabitur eget urna ut nulla mattis convallis non eu diam.</p>
-      </div>
-
-    <hr id='drawings'>
-
-      <div style="text-align:center;">
-              <h2>Drawings</h2>
-              <p style="text-align: left;padding: 0px 30px;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum lorem nulla, consectetur at leo vel, pretium bibendum nisl. Cras blandit quam a enim ultrices, eu convallis enim posuere. Donec eleifend enim sed purus consectetur, vitae cursus lectus varius. Vivamus consectetur felis nec est venenatis posuere. Phasellus vitae aliquet erat. In laoreet lacinia mollis. Quisque iaculis nisl fermentum pharetra lobortis. Donec rhoncus dui sem, ac molestie leo tristique vel. Phasellus in nibh feugiat, fringilla lectus in, elementum magna. Etiam quis dui condimentum, tempus ex in, dapibus est. Cras ut congue augue. Donec ac enim ex. Ut id tristique risus, vel porttitor quam. Sed ultricies enim eu nibh porttitor, vel sodales enim feugiat. Fusce volutpat venenatis magna ac ultrices. Curabitur eget urna ut nulla mattis convallis non eu diam.</p>
+              <h2>Program and Hardware Design</h2>
+              <p style="text-align: left;padding: 0px 30px;">program details. What parts were tricky to write?</p>
+              <p style="text-align: left;padding: 0px 30px;">hardware details. Could someone else build this based on what you have written?</p>
+              <p style="text-align: left;padding: 0px 30px;">Be sure to specifically reference any design or code you used from someone else.</p>
+              <p style="text-align: left;padding: 0px 30px;">Things you tried which did not work</p>
       </div>
 
     <hr id='testing'>
 
       <div style="text-align:center;">
               <h2>Testing</h2>
-              <p style="text-align: left;padding: 0px 30px;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum lorem nulla, consectetur at leo vel, pretium bibendum nisl. Cras blandit quam a enim ultrices, eu convallis enim posuere. Donec eleifend enim sed purus consectetur, vitae cursus lectus varius. Vivamus consectetur felis nec est venenatis posuere. Phasellus vitae aliquet erat. In laoreet lacinia mollis. Quisque iaculis nisl fermentum pharetra lobortis. Donec rhoncus dui sem, ac molestie leo tristique vel. Phasellus in nibh feugiat, fringilla lectus in, elementum magna. Etiam quis dui condimentum, tempus ex in, dapibus est. Cras ut congue augue. Donec ac enim ex. Ut id tristique risus, vel porttitor quam. Sed ultricies enim eu nibh porttitor, vel sodales enim feugiat. Fusce volutpat venenatis magna ac ultrices. Curabitur eget urna ut nulla mattis convallis non eu diam.</p>
+              <p style="text-align: left;padding: 0px 30px;">Any and all test data, scope traces, waveforms, etc</p>
       </div>
-
+      
     <hr id='result'>
 
       <div style="text-align:center;">
               <h2>Result</h2>
-              <p style="text-align: left;padding: 0px 30px;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum lorem nulla, consectetur at leo vel, pretium bibendum nisl. Cras blandit quam a enim ultrices, eu convallis enim posuere. Donec eleifend enim sed purus consectetur, vitae cursus lectus varius. Vivamus consectetur felis nec est venenatis posuere. Phasellus vitae aliquet erat. In laoreet lacinia mollis. Quisque iaculis nisl fermentum pharetra lobortis. Donec rhoncus dui sem, ac molestie leo tristique vel. Phasellus in nibh feugiat, fringilla lectus in, elementum magna. Etiam quis dui condimentum, tempus ex in, dapibus est. Cras ut congue augue. Donec ac enim ex. Ut id tristique risus, vel porttitor quam. Sed ultricies enim eu nibh porttitor, vel sodales enim feugiat. Fusce volutpat venenatis magna ac ultrices. Curabitur eget urna ut nulla mattis convallis non eu diam.</p>
+              <p style="text-align: left;padding: 0px 30px;">speed of execution (hesitation, filcker, interactiveness, concurrency)</p>
+              <p style="text-align: left;padding: 0px 30px;">accuracy (numeric, music frequencies, video signal timing, etc)</p>
+              <p style="text-align: left;padding: 0px 30px;">how you enforced safety in the design.</p>
+              <p style="text-align: left;padding: 0px 30px;">usability by you and other people</p>
+      </div>
+      
+    <hr id='conclusion'>
+
+      <div style="text-align:center;">
+              <h2>Result</h2>
+              <p style="text-align: left;padding: 0px 30px;">Analyse your design in terms of how the results met your expectations. What might you do differently next time?</p>
+              <p style="text-align: left;padding: 0px 30px;">How did your design conform to the applicable standards?</p>
+              <p style="text-align: left;padding: 0px 30px;">Intellectual property considerations.</p>
+      </div>
+      
+    <hr id='Appendix A'>
+
+      <div style="text-align:center;">
+              <h2>Appendix A</h2>
+              <p style="text-align: left;padding: 0px 30px;">permissions</p>
+      </div>
+      
+    <hr id='Additional Appendices'>
+
+      <div style="text-align:center;">
+              <h2>Additional Appendices</h2>
+              <p style="text-align: left;padding: 0px 30px;">more</p>
       </div>
 
     <hr>
@@ -135,6 +160,12 @@
               <h3>Rick</h3>
               <p class="lead">netid@cornell.edu</p>
               <p>Designed the overall software architecture (Just being himself).
+          </div>
+          <div class="col-md-6" style="font-size:16px">
+              <img class="img-rounded" src="pics/b.png" alt="Generic placeholder image" width="240" height="240">
+              <h3>Morty</h3>
+              <p class="lead">netid@cornell.edu</p>
+              <p>Tested the overall system.
           </div>
           <div class="col-md-6" style="font-size:16px">
               <img class="img-rounded" src="pics/b.png" alt="Generic placeholder image" width="240" height="240">
