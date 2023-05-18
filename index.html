@@ -91,14 +91,52 @@
     <hr id='obj'>
       <div style="text-align:center;">
               <h2>High Level Design</h2>
+
+              <h3> Rationale and Sources for Idea </h3>
               <p style="text-align: left;padding: 0px 30px;">
                 We chose to pursue this project because we enjoyed the boid project from ECE 4760 and wanted to expand upon it and see new applications to which it can be applied. Members of our team also had previous experience working with audio visualization from ECE 5725 which would be helpful for this project. Finally, we all enjoyed music and simply thought it would be cool to see what flocks of boids reacting to music would look like.
-                <br><br>
+              </p>
+
+              <h3> Background Math </h3>
+              <p style="text-align: left;padding: 0px 30px;">
                 Some background information on the math used in this project would be helpful before going into more detail. We initially used a Fast Fourier Transform (FFT) in our baseline design to obtain the highest amplitude frequency from the input audio signal with very high resolution. However, implementing an FFT on the FPGA side is very difficult, and high resolution is not required for music visualization. Therefore, we instead chose to use FIR bandpass filters to give us a coarse approximation of the highest amplitude frequency. To do this, we created five FIR bandpass filters, with each filter covering a specific frequency range. More specifically, we had a filter for each of these ranges: 200 Hz to 550 Hz, 550 Hz to 900 Hz, 900 Hz to 1250 Hz, 1250 Hz to 1600 Hz, and 1600 to 2000 Hz. When an audio signal with frequencies between 200 Hz to 2000 Hz is inputted, the five bandpass filters will output the filtered amplitudes for each of their ranges. We can then choose the filter with the highest amplitude to find a rough approximation of the highest amplitude frequency. For example, if a 700 Hz signal is put into the FIR filters, the bandpass filter set to 550 Hz to 900 Hz will have the highest amplitude, so we can conclude that the signal is between 550-900 Hz and we can estimate it as 725 Hz (the middle of 550 and 900):
               </p>
               <div style="text-align:center;">
                   <img class="img-rounded" src="pics/FIR_diagram_1.png" alt="Generic placeholder image" style="width:50%;">
               </div>
+              <p style="text-align: left;padding: 0px 30px;">
+                The algorithm we used to create the visualization was the boid flocking algorithm, which mimics the flocking behavior of birds and other flocking animals. In this algorithm, each boid object has a visual range of all the other boids they can see. Within this visual range is a protected range where the boids will steer away from other boids in the range to avoid a collision. The amount that they avoid each other can be tuned with a parameter called the avoid factor.
+              </p>
+              <div style="text-align:center;">
+                  <img class="img-rounded" src="pics/boid_ranges.png" alt="Generic placeholder image" style="width:37%;">
+                  <img class="img-rounded" src="pics/separation.png" alt="Generic placeholder image" style="width:37%;">
+              </div>
+              <i>Left image showing boid ranges. Right image showing separation <br> Image credit: ECE 4760 Boid Webpage <br><br></i>
+
+              <p style="text-align: left;padding: 0px 30px;">
+                In addition to avoiding collisions with boids within the protected range, the boids will attempt to match their velocities with other boids within their visual range and outside of their protected range. This causes the boids to align with each other, and the amount that they align can be tuned with a parameter called the matching factor. Finally, the boids will move toward the center of mass of the boids within its protected range, causing them to form cohesive groups. The amount that they group together can be tuned with a parameter called the centering factor.
+              </p>
+              <div style="text-align:center;">
+                  <img class="img-rounded" src="pics/alignment.png" alt="Generic placeholder image" style="width:37%;">
+                  <img class="img-rounded" src="pics/cohesion.png" alt="Generic placeholder image" style="width:37%;">
+              </div>
+              <i>Left image showing velocity aligmnent. Right image showing group cohesion <br> Image credit: ECE 4760 Boid Webpage <br><br></i>
+
+
+              <p style="text-align: left;padding: 0px 30px;">
+                More information on the Boids algorithm can be found <a href="https://people.ece.cornell.edu/land/courses/ece4760/labs/s2021/Boids/Boids.html">on this page</a>
+              </p>
+
+              <h3> Logical Structure and Tradeoffs </h3>
+              <p style="text-align: left;padding: 0px 30px;">
+              </p>
+              <div style="text-align:center;">
+                  <img class="img-rounded" src="pics/flowchart.png" alt="Generic placeholder image" style="width:30%;">
+              </div>
+
+              <h3> Patents, Trademarks, Copyrights </h3>
+              <p style="text-align: left;padding: 0px 30px;">
+              </p>
       </div>
 
     <hr id='design'>
@@ -115,7 +153,7 @@
 
       <div style="text-align:center;">
               <h2>Design and Testing Methods</h2>
-              <p style="text-align: left;padding: 0px 30px;"> To design the Dancing Robot audio visualizer, we approached the project with five milestones: implementation of boids in HPS, audio input with FFT in HPS, FIR in FPGA, optimization, and user interface. Each implementation started with a simple setup and tests. This developmental design and testing method allowed us to ensure the performance of our design. 
+              <p style="text-align: left;padding: 0px 30px;"> To design the Dancing Robot audio visualizer, we approached the project with five milestones: implementation of boids in HPS, audio input with FFT in HPS, FIR in FPGA, optimization, and user interface. Each implementation started with a simple setup and tests. This developmental design and testing method allowed us to ensure the performance of our design.
 	     </p>
 	      <h3> Boids Design and Testing</h3>
 	       <p style="text-align: left;padding: 0px 30px;"> The boids design and algorithm were based on the given guide from ECE4760. The boids algorithm allows for the replication of animal movement in groups, such as swarming, flocking, and schooling. In the algorithm, each animal is represented as a boid and controlled with three rules: separation, alignment, and cohesion. These rules allow each boid to stay away from others with the avoiding factor, match the velocity of others, and move toward the center of the mass of other boids based on the centering factor. Based on the code written by Minjung and Amy from ECE4760 that used RP2040, the code was modified to be used on DE1-SoC. A communication bus between the FPGA and HPS was built and boids were spawned with VGA functions.
@@ -124,45 +162,45 @@
 	      <p style="text-align: left;padding: 0px 30px;"> In the design, the 12.15 fixed point was used to complete the arithmetic with fractional resolution. The top bit of 27 bits is used for the sign. Fixed-point arithmetic allows us to calculate with fractional resolution while using the same CPU cycles as the integer arithmetic and removes overflow and underflow for multiplication. It is implemented in a signed multiplier by selecting the 12 bits from the 41st to 30th bits and 15 bits from the 29th to 15th bits for the multiplied output of two 27-bit values. Also, the bits in integers were shifted by 15 to set the decimal between the bits 12 and 15. There exists a tradeoff as we get faster computation with a smaller range for resolution. However, it is important to use the fixed point as it saves more CPU cycles than using the floating point and handles overflow or error. This also minimizes the delay for updated the boid information and drawing at the correct timing.
 
 	     </p>
-	      <p style="text-align: left;padding: 0px 30px;"> To test the basic functionality of boids algorithms, 20 boids are drawn with no boundary, controlling factors, or bias applied and were tested with a VGA screen. The VGA successfully drew the stationary boids as small circles; however, we faced several issues where the boids were lagging, moving diagonally, and appearing in a random position in the VGA screen when they move out of the screen. We were able to find several reasons for these issues. First, the screen was not cleaned or not drawing black in the right position when boids were moving which made them look lagging. Second, the frame rate was too high which made computation too complex. Third, the numerical variables were not casted correctly with fixed point notation which made the fractional values to be zero and caused calculation errors.  
+	      <p style="text-align: left;padding: 0px 30px;"> To test the basic functionality of boids algorithms, 20 boids are drawn with no boundary, controlling factors, or bias applied and were tested with a VGA screen. The VGA successfully drew the stationary boids as small circles; however, we faced several issues where the boids were lagging, moving diagonally, and appearing in a random position in the VGA screen when they move out of the screen. We were able to find several reasons for these issues. First, the screen was not cleaned or not drawing black in the right position when boids were moving which made them look lagging. Second, the frame rate was too high which made computation too complex. Third, the numerical variables were not casted correctly with fixed point notation which made the fractional values to be zero and caused calculation errors.
 
 	     </p>
-	     <p style="text-align: left;padding: 0px 30px;"> When testing the boids drawing, we attempted different parameter values and methods to enhance the visuality. After modification in VGA_disc and the addition of motion controls, we found good parameter values of VGA functions and control factors that make the boids look and move more naturally. 
+	     <p style="text-align: left;padding: 0px 30px;"> When testing the boids drawing, we attempted different parameter values and methods to enhance the visuality. After modification in VGA_disc and the addition of motion controls, we found good parameter values of VGA functions and control factors that make the boids look and move more naturally.
 
 	     </p>
-	      
+
 	      <h3> Audio FFT Design and Testing</h3>
 	      <p style="text-align: left;padding: 0px 30px;"> To take audio input, the audio module FIFO was implemented. The state machines were also added to real the stereo from the audio FIFO. With the audio input, we implemented the FFT in HPS, using the guide provided in ECE4760. The Cooly-Tukey FFT algorithm is described above.
 	     </p>
-	      <p style="text-align: left;padding: 0px 30px;"> To test the functionality of FFT of audio input, we used a tone generator and serial output to see the filtered data. When we plotted the output of FFT while running the same tone generator, we experienced that the filtered output was discrete, showing the step function when plotted. The issue was found to be the sampling rate. It was sampling the FPGA too fast so it was getting the same value before the update. After the change, we could see the sine wave in the plot. We also confirmed that the FFT calculation output from audio sampling matches the frequency of the tone generator. 
+	      <p style="text-align: left;padding: 0px 30px;"> To test the functionality of FFT of audio input, we used a tone generator and serial output to see the filtered data. When we plotted the output of FFT while running the same tone generator, we experienced that the filtered output was discrete, showing the step function when plotted. The issue was found to be the sampling rate. It was sampling the FPGA too fast so it was getting the same value before the update. After the change, we could see the sine wave in the plot. We also confirmed that the FFT calculation output from audio sampling matches the frequency of the tone generator.
 	     </p>
-	      
+
 	      <h3> Audio FIR Implementation and Testing </h3>
-	     
-	      <p style="text-align: left;padding: 0px 30px;"> After the FFT implementation, we decided to use FIR in FPGA instead of FFT to increase the calculation speed using FPGA. There exist advantages of using FFT such as a higher resolution and simple implementation in HPS. However, for better efficiency and performance in boids motions, we implemented FIR to utilize FPGA hardware. Also, a high resolution was not needed for us, considering the project scope. Designing the boids to react to small changes in frequency was unnecessary and expensive in computation and risky in terms of possible errors. Also, FIR works better on FPGA and gives a similar output as FFT, as we computed chunks of frequency. 
+
+	      <p style="text-align: left;padding: 0px 30px;"> After the FFT implementation, we decided to use FIR in FPGA instead of FFT to increase the calculation speed using FPGA. There exist advantages of using FFT such as a higher resolution and simple implementation in HPS. However, for better efficiency and performance in boids motions, we implemented FIR to utilize FPGA hardware. Also, a high resolution was not needed for us, considering the project scope. Designing the boids to react to small changes in frequency was unnecessary and expensive in computation and risky in terms of possible errors. Also, FIR works better on FPGA and gives a similar output as FFT, as we computed chunks of frequency.
 
 	     </p>
-	      <p style="text-align: left;padding: 0px 30px;"> The testing was also done with a tone generator and serial monitor output. During the test, we experience the noise in the FIR filter. After a long debug, it was found that the high volume of the audio from a laptop was the source of the noise. Testing with the volume level of 2 in Macbook, the output did not show any noise both numerically and visually with boids. 
+	      <p style="text-align: left;padding: 0px 30px;"> The testing was also done with a tone generator and serial monitor output. During the test, we experience the noise in the FIR filter. After a long debug, it was found that the high volume of the audio from a laptop was the source of the noise. Testing with the volume level of 2 in Macbook, the output did not show any noise both numerically and visually with boids.
 
 	     </p>
 	      <p style="text-align: left;padding: 0px 30px;"> Also, to check the reactivity of the boids in a change of frequency visually, we turned on various types of music from classics to pop songs. Looking at the motions on VGA, we lowered some changes in the number of boids to increase the speed of the boids. Also, the avoiding factor and centering factor were carefully chosen to demonstrate the reactivity effectively while maintaining the swarming behaviors.
 
 	     </p>
-	      
+
 	      <h3> Optimization Design and Testing </h3>
 	      <p style="text-align: left;padding: 0px 30px;"> In addition to fixed-point arithmetics and FIR filters, we also tried to optimize the boids calculation so that we could increase the number of boids to swarm. We attempted to incorporate FPGA in the entire boids calculations. However, this would require more multiplier than available. 105 multipliers were already in use for the FIR computation as there are 21 taps for each of the five bins. Each boid required at least 10 multipliers and there were hundreds of boids. This would exceed the 174 multipliers limit in FPGA. Additionally, this acceleration method would require extensive communication between FPGA and ARM HPS. With 300 boids, PIO ports would have to pass 300+ variables which could create too much overhead and ultimately slow down the program.
-After careful consideration and testing on the VGA screen, we decided not to modify the boids calculations. 
+After careful consideration and testing on the VGA screen, we decided not to modify the boids calculations.
 
 	     </p>
-	      
+
 	      <h3> User Interface Design and Testing</h3>
-	      <p style="text-align: left;padding: 0px 30px;"> 
+	      <p style="text-align: left;padding: 0px 30px;">
 		      We designed the user interface that allows the user can change boundary conditions to see different swarming motions of boids and background color. We also decided to use a projector, instead of a VGA monitor.
-Implementation of the VGA projector went smoothly as we used the VGA screen before. We changed the settings like brightness, color contrast, and each RGB rate in the projector to make the boids more visible. Tested on different lighting, angle, and walls. We first used the project in the dark lab environment and could see the boids with different colors on the black background. When we tested in Duffield Atrium in the evening, the boids were not very visible even though the lighting was not bright. We had to maximize the brightness on the projector and find a better wall without lamps near. When we tested in the morning in Duffield, we found that the red background made the white boids visible the best after testing with black and blue background colors. 
+Implementation of the VGA projector went smoothly as we used the VGA screen before. We changed the settings like brightness, color contrast, and each RGB rate in the projector to make the boids more visible. Tested on different lighting, angle, and walls. We first used the project in the dark lab environment and could see the boids with different colors on the black background. When we tested in Duffield Atrium in the evening, the boids were not very visible even though the lighting was not bright. We had to maximize the brightness on the projector and find a better wall without lamps near. When we tested in the morning in Duffield, we found that the red background made the white boids visible the best after testing with black and blue background colors.
 
 	     </p>
-	      
-	      
+
+
       </div>
 
     <hr id='result'>
@@ -176,14 +214,14 @@ Implementation of the VGA projector went smoothly as we used the VGA screen befo
               <h4>Figure2: Output of Audio FIR graph</h4>
 	      <p style="text-align: left;padding: 0px 30px;">The graphs show the outputs of the FFT of audio input of different frequency values. The form of a sine wave shows the functionality of FIR in FPGA is demonstrated.</p>
              <h3> Videos </h3>
-	      
+
 	      <div class="center-block">
 		     	<iframe width="560" height="315" src="https://www.youtube.com/embed/enUzPBo2F08" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 		  <h4 style="text-align:center;">Dancing Boids with Classical Music</h4>
 	      </div>
 	      <p style="text-align: left;padding: 0px 30px;">The video shows the outputs of the audio visualizer with a black background. The video was taken in the Phillips lab with classical music. The interactiveness of boids is demonstrated by the slow change in pitch and speed of the music.
 </p>
-	    
+
 	       <div class="center-block">
 	      <iframe width="560" height="315" src="https://www.youtube.com/embed/SwYGrqfhHeA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 		  <h4 style="text-align:center;">Dancing Boids with Pop Music</h4>
