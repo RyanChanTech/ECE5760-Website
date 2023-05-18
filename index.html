@@ -106,9 +106,27 @@
       <div style="text-align:center;">
               <h2>Program and Hardware Design</h2>
               <h3> Baseline Design </h3>
-              <p style="text-align: left;padding: 0px 30px;"> Our baseline design involved using the FPGA to create a simple audio loop-back configuration. Audio from our laptops were sent into the MIC audio jack on the SoC and out to a speaker with no processing involved. We used the Audio loop-back configuration example provided on the Audio Digital Signal Processing (DSP) webpage and made no significant changes to the Verilog code at this stage. We added a PIO port, allowing for the FPGA to communicate with the ARM HPS, and sent the audio data through the port. Thus, we were able to process our audio solely in C on the HPS. In order to determine the frequency of the audio played, we chose to use fast fourier transform (FFT) to process our audio as FFT is often used to determine the frequencies of the different sine waves that make up a periodic function. Specifically, we used the Cooley-Tukey Fast Fourier Transform method. The Cooley-Tukey FFT first splits the discrete fourier transforms (DFTs) into smaller DFTs. The algorithm then divides the length of each summation. This recursive algorithm takes advantage of the divisiveness of the sums (DFTs) and reduces computation time significantly. Our audio sampling rate was set to 48kHz and we used the FFT code provided by Professor Hunter Adams for his class ECE 4760. The boids were controlled solely by the ARM HPS, in terms of both drawing them on the VGA screen and updating each boid’s parameters (velocity, speed, position, etc.). The code for spawning and updating the boids were sampled from ECE 4760 as all three teammates had taken the course before and have written the code in past semesters. For this project, we were less rigorous with the frame rate at which the boids showed up on the VGA screen. We simply tested with different numbers (in the hundreds) of boids and confirmed visually which total number of boids responded best to the input audio. </p>
+	      <p style="text-align: left;padding: 0px 30px;">Our baseline design involved using the FPGA to create a simple audio loop-back configuration. Audio from our laptops were sent into the MIC audio jack on the SoC and out to a speaker with no processing involved. We used the Audio loop-back configuration example provided on the Audio Digital Signal Processing (DSP) webpage and made no significant changes to the Verilog code at this stage.  </p>
+              <p style="text-align: left;padding: 0px 30px;">We added a PIO port, allowing for the FPGA to communicate with the ARM HPS, and sent the audio data through the port. Thus, we were able to process our audio solely in C on the HPS. In order to determine the frequency of the audio played, we chose to use fast fourier transform (FFT) to process our audio as FFT is often used to determine the frequencies of the different sine waves that make up a periodic function. Specifically, we used the Cooley-Tukey Fast Fourier Transform method. The Cooley-Tukey FFT first splits the discrete fourier transforms (DFTs) into smaller DFTs. The algorithm then divides the length of each summation. This recursive algorithm takes advantage of the divisiveness of the sums (DFTs) and reduces computation time significantly. Our audio sampling rate was set to 48kHz and we used the FFT code provided by Professor Hunter Adams for his class ECE 4760.</p>
+	      <p style="text-align: left;padding: 0px 30px;">The boids were controlled solely by the ARM HPS, in terms of both drawing them on the VGA screen and updating each boid’s parameters (velocity, speed, position, etc.). The code for spawning and updating the boids were sampled from ECE 4760 as all three teammates had taken the course before and have written the code in past semesters. For this project, we were less rigorous with the frame rate at which the boids showed up on the VGA screen. We simply tested with different numbers (in the hundreds) of boids and confirmed visually which total number of boids responded best to the input audio.</p>
 	      <h3> Alternative Design </h3>
-              <p style="text-align: left;padding: 0px 30px;"> </p>
+              <p style="text-align: left;padding: 0px 30px;">To improve our baseline, we accelerated the VGA display aspect and audio processing aspect of our design by re-configuring the FPGA.</p>
+	      <p style="text-align: left;padding: 0px 30px;">We saw in lab 2 of this course that the FPGA can display images on the VGA screen much faster than the ARM HPS. Therefore, we re-used our GPU finite state machine design in lab 2 for this project. Similar to lab 2, we re-wrote Qsys in order to use a dual-port SRAM for the VGA buffer. Using the SRAM also allowed us to overcome the low write-rate of the SDRAM-buffered VGA. The dual-ports allowed for the HPS to control the boids (by still using C to do all the necessary calculations) and for only the FPGA to write to the VGA SRAM. How the HPS and FPGA communicated and how a pixel is written to the VGA memory is as follow: the FPGA checks if the HPS has sent a command, if yes then that means the HPS has written to the Qsys SRAM and so the FPGA will read from different memory addresses of the Qsys SRAM to gather different data. Specifically, the HPS writes to the Qsys SRAM information about a boid’s position and color, the FPGA will read these data, and then the FPGA will write these data to the VGA SRAM. </p>
+	      <p style="text-align: left;padding: 0px 30px;">We had many issues with this step of the project, as changing the Qsys layout also affected our Audio loopback configuration. Thus, before moving on to accelerate audio processing, we spent time debugging the combination of these two (display and audio) configurations. In the end, our system was built by starting with the display configuration then adding the audio system. We also added another PIO port to allow for the buttons on the SoC board to control the mode of the boid display. While button 0 was used as the reset button that resets the entire program, button 1 set the mode value to 0 (box boundary), button 2 set the mode value to 1 (column boundary), and button 3 set the mode value to 2 (no boundaries/ wraparound). This resulted in better user-experience and a much smoother transition between the 3 modes.</p>
+	      <div style="text-align:center;">
+                  <img class="img-rounded" src="pics/box.png" alt="Generic placeholder image" style="width:50%;">
+              </div>
+	      <p style="text-align: left;padding: 0px 30px;">Box boundary for boids (mode = 0). Set when button 1 is pressed</p>
+	      <div style="text-align:center;">
+                  <img class="img-rounded" src="pics/columns.png" alt="Generic placeholder image" style="width:50%;">
+              </div>
+	      <p style="text-align: left;padding: 0px 30px;">Column boundary for boids (mode = 1). Set when button 2 is pressed</p>
+	      <div style="text-align:center;">
+                  <img class="img-rounded" src="pics/wraparound.png" alt="Generic placeholder image" style="width:50%;">
+              </div>
+	      <p style="text-align: left;padding: 0px 30px;">Wraparound boundary for boids (mode = 2). Set when button 3 is pressed</p>
+	      <p style="text-align: left;padding: 0px 30px;"> </p>
+	      <p style="text-align: left;padding: 0px 30px;"> </p>
       </div>
 
     <hr id='testing'>
@@ -265,7 +283,7 @@ Implementation of the VGA projector went smoothly as we used the VGA screen befo
 
       <div class="row">
 	      <hr id="codeA">
-              <h2>Code Appendix A (C Code)</h2>
+              <h2>Appendix B (C Code)</h2>
               <pre><code>
 //////////////////////////////////////////
 /// Final C code for 5760 Dancing Boids///
@@ -1004,7 +1022,7 @@ void VGA_line(int x1, int y1, int x2, int y2, short c) {
       <div class="row">
 
 	    <hr id='codeB'>
-              <h2>Code Appendix B (Verilog Code)</h2>
+              <h2>Appendix C (Verilog Code)</h2>
               <pre><code>
 ////////////////////////////////////////////////
 /// Final Verilog code for 5760 Dancing Boids///
