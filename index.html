@@ -138,7 +138,7 @@
                 <br><br>
                 The output of these five filters is then sent over five Qsys busses over to the HPS side, which will pick the filter range with the highest amplitude to approximate the highest amplitude frequency as described above. This frequency is then used to adjust the avoid, matching, and centering factors for the boids in such a way that higher frequencies cause the boids to group up, and lower frequencies cause the boids to break apart. The boid’s new positions are then calculated on the HPS side based on these factors. Although this is not as computationally efficient as parallelizing it on the FPGA side, we determined that there were not enough multipliers to effectively implement the boid calculations on the FPGA side. Additionally, it was significantly easier and less bug-prone to implement it on the HPS side.
                 <br><br>
-                Finally, rendering instructions for the boids are sent over the Qsys bus back to the FPGS side to be displayed using the VGA SRAM.
+                Finally, rendering instructions for the boids are sent over the Qsys bus back to the FPGA side to be displayed using the VGA SRAM.
               </p>
               <div style="text-align:center;">
                   <img class="img-rounded" src="pics/flowchart.png" alt="Generic placeholder image" style="width:30%;">
