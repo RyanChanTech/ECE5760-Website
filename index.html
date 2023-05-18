@@ -99,13 +99,12 @@
 
               <h3> Background Math </h3>
               <p style="text-align: left;padding: 0px 30px;">
-                Some background information on the math used in this project would be helpful before going into more detail. We initially used a Fast Fourier Transform (FFT) in our baseline design to obtain the highest amplitude frequency from the input audio signal with very high resolution. However, implementing an FFT on the FPGA side is very difficult, and high resolution is not required for music visualization. Therefore, we instead chose to use FIR bandpass filters to give us a coarse approximation of the highest amplitude frequency. To do this, we created five FIR bandpass filters, with each filter covering a specific frequency range. More specifically, we had a filter for each of these ranges: 200 Hz to 550 Hz, 550 Hz to 900 Hz, 900 Hz to 1250 Hz, 1250 Hz to 1600 Hz, and 1600 to 2000 Hz. When an audio signal with frequencies between 200 Hz to 2000 Hz is inputted, the five bandpass filters will output the filtered amplitudes for each of their ranges. We can then choose the filter with the highest amplitude to find a rough approximation of the highest amplitude frequency. For example, if a 700 Hz signal is put into the FIR filters, the bandpass filter set to 550 Hz to 900 Hz will have the highest amplitude, so we can conclude that the signal is between 550-900 Hz and we can estimate it as 725 Hz (the middle of 550 and 900):
-              </p>
+                Some background information on the math used in this project would be helpful before going into more detail. We initially used a Fast Fourier Transform (FFT) in our baseline design to obtain the highest amplitude frequency from the input audio signal with very high resolution. However, implementing an FFT on the FPGA side is very difficult, and high resolution is not required for music visualization. Therefore, we instead chose to use Finite Input Response (FIR) bandpass filters to give us a coarse approximation of the highest amplitude frequency. To do this, we created five FIR bandpass filters, with each filter covering a specific frequency range. More specifically, we had a filter for each of these ranges: 200 Hz to 550 Hz, 550 Hz to 900 Hz, 900 Hz to 1250 Hz, 1250 Hz to 1600 Hz, and 1600 to 2000 Hz. When an audio signal with frequencies between 200 Hz to 2000 Hz is inputted, the five bandpass filters will output the filtered amplitudes for each of their ranges. We can then choose the filter with the highest amplitude to find a rough approximation of the highest amplitude frequency. For example, if a 700 Hz signal is put into the FIR filters, the bandpass filter set to 550 Hz to 900 Hz will have the highest amplitude, so we can conclude that the signal is between 550-900 Hz and we can estimate it as 725 Hz (the middle of 550 and 900):</p>
               <div style="text-align:center;">
                   <img class="img-rounded" src="pics/FIR_diagram_1.png" alt="Generic placeholder image" style="width:50%;">
               </div>
               <p style="text-align: left;padding: 0px 30px;">
-                The algorithm we used to create the visualization was the boid flocking algorithm, which mimics the flocking behavior of birds and other flocking animals. In this algorithm, each boid object has a visual range of all the other boids they can see. Within this visual range is a protected range where the boids will steer away from other boids in the range to avoid a collision. The amount that they avoid each other can be tuned with a parameter called the avoid factor.
+                The algorithm we used to create the visualization was the boid flocking algorithm, which mimics the flocking behavior of birds and other flocking animals. In this algorithm, each boid object has a visual range of all the other boids they can see. Within this visual range is a protected range where the boids will steer away from other boids in the range to avoid a collision. The amount that they avoid each other can be tuned with a parameter called the avoid factor. This is calculated by taking the sum of the difference of the boid of interest with every other boid in the protected range and multiplying it by the avoid factor. The result is then added to the boid of interest’s velocity.
               </p>
               <div style="text-align:center;">
                   <img class="img-rounded" src="pics/boid_ranges.png" alt="Generic placeholder image" style="width:37%;">
@@ -114,13 +113,19 @@
               <i>Left image showing boid ranges. Right image showing separation <br> Image credit: ECE 4760 Boid Webpage <br><br></i>
 
               <p style="text-align: left;padding: 0px 30px;">
-                In addition to avoiding collisions with boids within the protected range, the boids will attempt to match their velocities with other boids within their visual range and outside of their protected range. This causes the boids to align with each other, and the amount that they align can be tuned with a parameter called the matching factor. Finally, the boids will move toward the center of mass of the boids within its protected range, causing them to form cohesive groups. The amount that they group together can be tuned with a parameter called the centering factor.
+                In addition to avoiding collisions with boids within the protected range, the boids will attempt to match their velocities with other boids within their visual range. This causes the boids to align with each other, and the amount that they align can be tuned with a parameter called the matching factor. This is calculated by first finding the average velocity of all the other boids within the visual range of the boid of interest. The boid of interest’s velocity is then subtracted from this average velocity and multiplied by the matching factor. The result is then added to the boid of interest’s total velocity.
               </p>
               <div style="text-align:center;">
                   <img class="img-rounded" src="pics/alignment.png" alt="Generic placeholder image" style="width:37%;">
+              </div>
+              <i>Image credit: ECE 4760 Boid Webpage <br><br></i>
+              <p style="text-align: left;padding: 0px 30px;">
+                Finally, the boids will move toward the center of mass of the boids within its protected range, causing them to form cohesive groups. The amount that they group together can be tuned with a parameter called the centering factor. This is calculated by first finding the average position of all the other boids within the visual range of the boid of interest. The boid of interest’s position is then subtracted from this average position and multiplied by the centering factor. The result is then added to the boid of interest’s total velocity.
+              </p>
+              <div style="text-align:center;">
                   <img class="img-rounded" src="pics/cohesion.png" alt="Generic placeholder image" style="width:37%;">
               </div>
-              <i>Left image showing velocity aligmnent. Right image showing group cohesion <br> Image credit: ECE 4760 Boid Webpage <br><br></i>
+              <i>Image credit: ECE 4760 Boid Webpage <br><br></i>
 
 
               <p style="text-align: left;padding: 0px 30px;">
