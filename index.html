@@ -75,8 +75,13 @@
 
       <div style="text-align:center;">
               <h2>Project Introduction</h2>
-              <p style="text-align: left;padding: 0px 30px;">One sentence "sound bite" that describes your project.</p>
-              <p style="text-align: left;padding: 0px 30px;">A summary of what you did and why.</p>
+              <p style="text-align: left;padding: 0px 30px;">
+                Dancing Boids visualizes music using the boid (bird-oid object) flocking simulation, where the flocks of boids spread apart or group up based on the frequencies of the music.
+                <br><br>
+                Going into more detail, this system is implemented on the DE1-SoC Board which includes both an FPGA that can run Verilog code and an ARM-based HPS processor that can run C code. This system consists of three main components. This first is an audio component on the FPGA side that takes audio input from the audio jack and extracts the highest-amplitude frequency. The second is a calculation component on the HPS side that takes this frequency and performs boid flocking calculations based on it. The third and final piece is a display component on the FPGA side that takes the boid calculations and displays them to the VGA screen.
+                <br><br>
+                We chose to pursue this project because we enjoyed the boid project from ECE 4760, and we wanted to expand upon it and see new applications to which it can be applied. Members of our team also had previous experience working with audio visualization which would be helpful for this project. Finally, we all enjoyed music and simply thought it would be cool to see what flocks of boids reacting to music would look like.
+              </p>
       </div>
 
     <hr id='obj'>
@@ -113,7 +118,7 @@
               <h2>Testing</h2>
               <p style="text-align: left;padding: 0px 30px;">Any and all test data, scope traces, waveforms, etc</p>
       </div>
-      
+
     <hr id='result'>
 
       <div style="text-align:center;">
@@ -123,7 +128,7 @@
               <p style="text-align: left;padding: 0px 30px;">how you enforced safety in the design.</p>
               <p style="text-align: left;padding: 0px 30px;">usability by you and other people</p>
       </div>
-      
+
     <hr id='conclusion'>
 
       <div style="text-align:center;">
@@ -132,7 +137,7 @@
               <p style="text-align: left;padding: 0px 30px;">How did your design conform to the applicable standards?</p>
               <p style="text-align: left;padding: 0px 30px;">Intellectual property considerations.</p>
       </div>
-      
+
     <hr id='Appendix A'>
 
       <div style="text-align:center;">
@@ -207,11 +212,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
-#include <sys/ipc.h> 
-#include <sys/shm.h> 
+#include <sys/ipc.h>
+#include <sys/shm.h>
 #include <sys/mman.h>
-#include <sys/time.h> 
-#include <math.h> 
+#include <sys/time.h>
+#include <math.h>
 
 #include "address_map_arm_brl4.h"
 
@@ -281,17 +286,17 @@ int fd;
 	pixel_ptr = (char *)vga_pixel_ptr + ((y)*640) + (x) ;\
 	*(char *)pixel_ptr = (color);\
 } while(0)
-//========================================================	
+//========================================================
 // swap macro
-#define SWAP(X,Y) do{int temp=X; X=Y; Y=temp;}while(0) 
+#define SWAP(X,Y) do{int temp=X; X=Y; Y=temp;}while(0)
 //========================================================
 
 // === the fixed point macros ========================================
 typedef signed int fix15 ;
 #define multfix15(a,b) ((fix15)((((signed long long)(a))*((signed long long)(b)))>>15))
-#define float2fix15(a) ((fix15)((a)*32768.0)) 
+#define float2fix15(a) ((fix15)((a)*32768.0))
 #define fix2float15(a) ((float)(a)/32768.0)
-#define absfix15(a) abs(a) 
+#define absfix15(a) abs(a)
 #define int2fix15(a) ((fix15)(a << 15))
 #define fix2int15(a) ((int)(a >> 15))
 #define char2fix15(a) (fix15)(((fix15)(a)) << 15)
@@ -300,7 +305,7 @@ typedef signed int fix15 ;
 // global variable for pixel boundaries
 int leftBound;
 int rightBound;
-int topBound; 
+int topBound;
 int bottomBound;
 
 //mode of boid boundaries
@@ -345,13 +350,13 @@ struct boids{
   fix15 x;
   fix15 y;
   fix15 vx;
-  fix15 vy; 
+  fix15 vy;
   int direction;
 }boids_t;
 
 //array of boids
 struct boids boidArray[numBoids];
-		
+
 // measure time
 struct timeval t1, t2, start_time, end_time;
 double elapsedTime;
@@ -366,7 +371,7 @@ void spawnBoid(fix15* x, fix15* y, fix15* vx, fix15* vy, int direction)
   int random = rand() % 4 + 3;
   *x = int2fix15(rand() % 441 + 100) ;
   *y = int2fix15(rand() % 281+ 100) ;
-  
+
   // Choose left or right
   if (direction) *vx = int2fix15(random) ;
   else *vx = int2fix15(-random) ;
@@ -389,12 +394,12 @@ void update_one_boid( fix15* x, fix15* y, fix15* vx, fix15* vy, int idx) {
   // For every boid . . .
 
       // Zero all accumulator variables (can't do this in one line in C)
-      fix15 xpos_avg = 0; 
+      fix15 xpos_avg = 0;
       fix15 ypos_avg = 0;
       fix15 xvel_avg = 0;
-      fix15 yvel_avg = 0; 
-      fix15 neighboring_boids = 0; 
-      fix15 close_dx = 0; 
+      fix15 yvel_avg = 0;
+      fix15 neighboring_boids = 0;
+      fix15 close_dx = 0;
       fix15 close_dy = 0;
 
       // For every other boid in the flock . . .
@@ -403,9 +408,9 @@ void update_one_boid( fix15* x, fix15* y, fix15* vx, fix15* vy, int idx) {
         if (i != idx) {
           fix15 dx = *x - boidArray[i].x;
           fix15 dy = *y - boidArray[i].y;
-          
+
           // Update the average position based on the neighboring boids in the visual range
-          
+
           if (absfix15(dx)<visualRange && absfix15(dy)<visualRange) {
             fix15 sq_dist = multfix15(dx,dx) + multfix15(dy,dy);
 
@@ -424,7 +429,7 @@ void update_one_boid( fix15* x, fix15* y, fix15* vx, fix15* vy, int idx) {
           }
         }
       }
-      
+
       //check number of neighboring boids...
       if ((neighboring_boids) > 0) {
         xpos_avg = divfix(xpos_avg, neighboring_boids);
@@ -445,27 +450,27 @@ void update_one_boid( fix15* x, fix15* y, fix15* vx, fix15* vy, int idx) {
       }
       if (hitBottom(*y) && mode==0) {
         *vy  = (*vy - turnfactor) ;
-      } 
+      }
       if (hitRight(*x) && mode!=2) {
         *vx  = (*vx - turnfactor) ;
       }
       if (hitLeft(*x) && mode!=2) {
-        *vx  = (*vx + turnfactor) ;    
+        *vx  = (*vx + turnfactor) ;
       }
-      
+
       // Connecting the left and right walls, top and bottom walls
       if (*x<=int2fix15(0) && mode==2) {
         *x = int2fix15(639);
       }
       if (*x>=int2fix15(640) && mode==2) {
-        *x = int2fix15(1) ;    
+        *x = int2fix15(1) ;
       }
       if (*y<=int2fix15(0) && mode!=0) {
         *y = int2fix15(479);
       }
       if (*y>=int2fix15(480) && mode!=0) {
         *y = int2fix15(1);
-      } 
+      }
 
      // Calculate the boid's speed
       float float_speed = sqrt(fix2float15(*vx) * fix2float15(*vx) + fix2float15(*vy) * fix2float15(*vy)) ;
@@ -480,10 +485,10 @@ void update_one_boid( fix15* x, fix15* y, fix15* vx, fix15* vy, int idx) {
       }
       else if (speed > maxspeed) {
           *vx = multfix15(vx_div_speed, maxspeed) ;
-          *vy = multfix15(vy_div_speed, maxspeed) ;         
-      } 
+          *vy = multfix15(vy_div_speed, maxspeed) ;
+      }
       // Update boid's position
-    
+
       *x = *x + *vx ;
       *y = *y + *vy ;
 
@@ -497,7 +502,7 @@ void drawBox() {
   bottomBound = 380 ;
   leftBound = 100 ;
   rightBound = 540 ;
-  
+
   VGA_line(leftBound, topBound, leftBound, bottomBound, WHITE) ;
   VGA_line(rightBound, topBound, rightBound, bottomBound, WHITE) ;
   VGA_line(leftBound, topBound, rightBound, topBound, WHITE) ;
@@ -526,47 +531,47 @@ int main(void)
 	delay_time.tv_nsec = 10 ;
 	delay_time.tv_sec = 0 ;
 
-	// Declare volatile pointers to I/O registers (volatile 	// means that IO load and store instructions will be used 	// to access these pointer locations, 
-	// instead of regular memory loads and stores) 
-  	
+	// Declare volatile pointers to I/O registers (volatile 	// means that IO load and store instructions will be used 	// to access these pointer locations,
+	// instead of regular memory loads and stores)
+
 	// === need to mmap: =======================
 	// FPGA_CHAR_BASE
-	// FPGA_ONCHIP_BASE      
-	// HW_REGS_BASE        
-  
+	// FPGA_ONCHIP_BASE
+	// HW_REGS_BASE
+
 	// === get FPGA addresses ==================
     // Open /dev/mem
 	if( ( fd = open( "/dev/mem", ( O_RDWR | O_SYNC ) ) ) == -1 ) 	{
 		printf( "ERROR: could not open \"/dev/mem\"...\n" );
 		return( 1 );
 	}
-    
+
     // get virtual addr that maps to physical
 	// for light weight bus
-	h2p_lw_virtual_base = mmap( NULL, HW_REGS_SPAN, ( PROT_READ | PROT_WRITE ), MAP_SHARED, fd, HW_REGS_BASE );	
+	h2p_lw_virtual_base = mmap( NULL, HW_REGS_SPAN, ( PROT_READ | PROT_WRITE ), MAP_SHARED, fd, HW_REGS_BASE );
 	if( h2p_lw_virtual_base == MAP_FAILED ) {
 		printf( "ERROR: mmap1() failed...\n" );
 		close( fd );
 		return(1);
 	}
-	
+
 	// === get VGA char addr =====================
 	// get virtual addr that maps to physical
-	vga_char_virtual_base = mmap( NULL, FPGA_CHAR_SPAN, ( PROT_READ | PROT_WRITE ), MAP_SHARED, fd, FPGA_CHAR_BASE );	
+	vga_char_virtual_base = mmap( NULL, FPGA_CHAR_SPAN, ( PROT_READ | PROT_WRITE ), MAP_SHARED, fd, FPGA_CHAR_BASE );
 	if( vga_char_virtual_base == MAP_FAILED ) {
 		printf( "ERROR: mmap2() failed...\n" );
 		close( fd );
 		return(1);
 	}
-    
-    // Get the address that maps to the character 
+
+    // Get the address that maps to the character
 	vga_char_ptr =(unsigned int *)(vga_char_virtual_base);
 
 	// === get VGA pixel addr ====================
 	// get virtual addr that maps to physical
 	// SDRAM
-	vga_pixel_virtual_base = mmap( NULL, FPGA_ONCHIP_SPAN, ( PROT_READ | PROT_WRITE ), MAP_SHARED, fd, SDRAM_BASE); //SDRAM_BASE	
-	
+	vga_pixel_virtual_base = mmap( NULL, FPGA_ONCHIP_SPAN, ( PROT_READ | PROT_WRITE ), MAP_SHARED, fd, SDRAM_BASE); //SDRAM_BASE
+
 	if( vga_pixel_virtual_base == MAP_FAILED ) {
 		printf( "ERROR: mmap3() failed...\n" );
 		close( fd );
@@ -574,10 +579,10 @@ int main(void)
 	}
     // Get the address that maps to the FPGA pixel buffer
 	vga_pixel_ptr =(unsigned int *)(vga_pixel_virtual_base);
-	
+
 	// === get RAM FPGA parameter addr =========
-	sram_virtual_base = mmap( NULL, FPGA_ONCHIP_SPAN, ( PROT_READ | PROT_WRITE ), MAP_SHARED, fd, FPGA_ONCHIP_BASE); //fp	
-	
+	sram_virtual_base = mmap( NULL, FPGA_ONCHIP_SPAN, ( PROT_READ | PROT_WRITE ), MAP_SHARED, fd, FPGA_ONCHIP_BASE); //fp
+
 	if( sram_virtual_base == MAP_FAILED ) {
 		printf( "ERROR: mmap3() failed...\n" );
 		close( fd );
@@ -585,40 +590,40 @@ int main(void)
 	}
     // Get the address that maps to the RAM buffer
 	sram_ptr =(unsigned int *)(sram_virtual_base);
-	
+
 	// ===========================================
 
-	/* create a message to be displayed on the VGA 
+	/* create a message to be displayed on the VGA
           and LCD displays */
 	char text_top_row[40] = "DE1-SoC ARM/FPGA\0";
 	char text_bottom_row[40] = "Cornell ece5760\0";
 	char num_string[20], time_string[50] ;
-	
+
 	// a pixel from the video
 	int pixel_color;
 	// video input index
 	int i,j, ii, jj, data, count;
-	
+
 	// clear the screen
 	VGA_box (0, 0, 639, 479, 0x00);
 	// clear the text
 	VGA_text_clear();
 	VGA_text (1, 56, text_top_row);
 	VGA_text (1, 57, text_bottom_row);
-	
+
 	count = 0;
 	// set a seed for rnadom numbers
 	srand((unsigned) time(&t1));
-	
+
     //spawn boids
    int b = 0;
    for(b = 0; b< numBoids; b++){
         spawnBoid(&(boidArray[b].x), &(boidArray[b].y), &(boidArray[b].vx), &(boidArray[b].vy), 0);
-        VGA_disc(fix2int15(boidArray[b].x), fix2int15(boidArray[b].y), 2, BLUE); 
+        VGA_disc(fix2int15(boidArray[b].x), fix2int15(boidArray[b].y), 2, BLUE);
     }
-    
+
     int c = 0;
-    
+
     //address for PIO pointeres
     right_audio = (unsigned int *) (h2p_lw_virtual_base + RIGHT_AUDIO_OFFSET);
     debug1      = (unsigned int *) (h2p_lw_virtual_base + DEBUG1_OFFSET); //controls mode value
@@ -627,18 +632,18 @@ int main(void)
     freq3       = (unsigned int *) (h2p_lw_virtual_base + FREQ3_OFFSET);
     freq4       = (unsigned int *) (h2p_lw_virtual_base + FREQ4_OFFSET);
     freq5       = (unsigned int *) (h2p_lw_virtual_base + FREQ5_OFFSET);
-    debug2      = (unsigned int *) (h2p_lw_virtual_base + DEBUG2_OFFSET); 
-    debug3      = (unsigned int *) (h2p_lw_virtual_base + DEBUG3_OFFSET); 
+    debug2      = (unsigned int *) (h2p_lw_virtual_base + DEBUG2_OFFSET);
+    debug3      = (unsigned int *) (h2p_lw_virtual_base + DEBUG3_OFFSET);
 
     while(1){
         float bin1, bin2, bin3, bin4, bin5, max_amp, max12, max34, max_freq12, max_freq34, max_freq;
-        
+
         bin1 = abs(*freq1);
         bin2 = abs(*freq2);
         bin3 = abs(*freq3);
         bin4 = abs(*freq4);
         bin5 = abs(*freq5);
-        
+
         //find max amp
         //compare bin 1 and 2
         if (bin1 > bin2){
@@ -648,7 +653,7 @@ int main(void)
         max12 = bin2;
         max_freq12 = 750.;
         }
-        
+
         //compare bin 3 and 4
         if (bin3 > bin4){
         max34 = bin3;
@@ -657,7 +662,7 @@ int main(void)
         max34 = bin4;
         max_freq34 = 1400.;
         }
-        
+
         //compare result from 12 and 34
         if (max12 > max34){
         max_amp = max12;
@@ -666,45 +671,45 @@ int main(void)
         max_amp = max34;
         max_freq = max_freq34;
         }
-        
+
         //compare to bin5
         if (bin5 > max_amp){
         max_amp = bin5;
         max_freq = 1800.;
         }
-        
+
         //map max frequency to boid parameters
         float float_centering_factor = map(max_freq,350,1800,0.0005, 0.2);
         centeringfactor = float2fix15(float_centering_factor);
 
         float float_avoid_factor = map(max_freq,1800,350,0.0005, 0.2);
         avoidfactor = float2fix15(float_avoid_factor);
-        
+
         //update each boid in boid array
         for(c = 0; c< numBoids; c++){
             // erase boid
             VGA_disc(fix2int15(boidArray[c].x), fix2int15(boidArray[c].y), 2, BLACK);
 
             // update boid's position and velocity
-            update_one_boid(&(boidArray[c].x), &(boidArray[c].y), &(boidArray[c].vx), &(boidArray[c].vy), c); 
-        
+            update_one_boid(&(boidArray[c].x), &(boidArray[c].y), &(boidArray[c].vx), &(boidArray[c].vy), c);
+
             // draw the boid at its new position, with different colors
             if (c >=0 && c < numBoids_cutoff){ //0-79
-                VGA_disc(fix2int15(boidArray[c].x), fix2int15(boidArray[c].y), 2, RED); 
+                VGA_disc(fix2int15(boidArray[c].x), fix2int15(boidArray[c].y), 2, RED);
             }
             else if (c >=numBoids_cutoff && c < (numBoids_cutoff << 1)) {
-                VGA_disc(fix2int15(boidArray[c].x), fix2int15(boidArray[c].y), 2, YELLOW); 
+                VGA_disc(fix2int15(boidArray[c].x), fix2int15(boidArray[c].y), 2, YELLOW);
             }
             else if (c >=(numBoids_cutoff << 1) && c < (numBoids_cutoff * 3)){
-                VGA_disc(fix2int15(boidArray[c].x), fix2int15(boidArray[c].y), 2, GREEN); 
+                VGA_disc(fix2int15(boidArray[c].x), fix2int15(boidArray[c].y), 2, GREEN);
             }
             else if (c >=(numBoids_cutoff * 3) && c < (numBoids_cutoff << 2)){
-                VGA_disc(fix2int15(boidArray[c].x), fix2int15(boidArray[c].y), 2, BLUE); 
-            } 
+                VGA_disc(fix2int15(boidArray[c].x), fix2int15(boidArray[c].y), 2, BLUE);
+            }
             else {
-                VGA_disc(fix2int15(boidArray[c].x), fix2int15(boidArray[c].y), 2, PURPLE); 
-            } 
-        
+                VGA_disc(fix2int15(boidArray[c].x), fix2int15(boidArray[c].y), 2, PURPLE);
+            }
+
         }//end of for loop
 
         //change boid boundaries based on mode value
@@ -729,11 +734,11 @@ int main(void)
         }
 
    } //end while
-		
+
 } // end main
 
 /****************************************************************************************
- * Subroutine to send a string of text to the VGA monitor 
+ * Subroutine to send a string of text to the VGA monitor
 ****************************************************************************************/
 void VGA_text(int x, int y, char * text_ptr)
 {
@@ -744,14 +749,14 @@ void VGA_text(int x, int y, char * text_ptr)
 	while ( *(text_ptr) )
 	{
 		// write to the character buffer
-		*(character_buffer + offset) = *(text_ptr);	
+		*(character_buffer + offset) = *(text_ptr);
 		++text_ptr;
 		++offset;
 	}
 }
 
 /****************************************************************************************
- * Subroutine to clear text to the VGA monitor 
+ * Subroutine to clear text to the VGA monitor
 ****************************************************************************************/
 void VGA_text_clear()
 {
@@ -762,19 +767,19 @@ void VGA_text_clear()
 	/* assume that the text string fits on one line */
 			offset = (y << 7) + x;
 			// write to the character buffer
-			*(character_buffer + offset) = ' ';		
+			*(character_buffer + offset) = ' ';
 		}
 	}
 }
 
 /****************************************************************************************
- * Draw a filled rectangle on the VGA monitor 
+ * Draw a filled rectangle on the VGA monitor
 ****************************************************************************************/
-#define SWAP(X,Y) do{int temp=X; X=Y; Y=temp;}while(0) 
+#define SWAP(X,Y) do{int temp=X; X=Y; Y=temp;}while(0)
 
 void VGA_box(int x1, int y1, int x2, int y2, short pixel_color)
 {
-	char  *pixel_ptr ; 
+	char  *pixel_ptr ;
 	int row, col;
 
 	/* check and fix box coordinates to be valid */
@@ -792,7 +797,7 @@ void VGA_box(int x1, int y1, int x2, int y2, short pixel_color)
 		for (col = x1; col <= x2; ++col)
 		{
 			//640x480
-			VGA_PIXEL(col, row, pixel_color);	
+			VGA_PIXEL(col, row, pixel_color);
 		}
 }
 
@@ -802,11 +807,11 @@ void VGA_box(int x1, int y1, int x2, int y2, short pixel_color)
 
 void VGA_disc(int x, int y, int r, short pixel_color)
 {
-	char  *pixel_ptr ; 
+	char  *pixel_ptr ;
 	int row, col, rsqr, xc, yc;
-	
+
 	rsqr = r*r;
-	
+
 	for (yc = -r; yc <= r; yc++)
 		for (xc = -r; xc <= r; xc++)
 		{
@@ -829,20 +834,20 @@ void VGA_disc(int x, int y, int r, short pixel_color)
                 *(sram_ptr+4) = row;
                 *(sram_ptr+5) = pixel_color;
                 *(sram_ptr) = 1; // the "data-ready" flag
-            
+
                 // wait for FPGA to zero the "data_ready" flag
-                while (*(sram_ptr)>0) ; 
+                while (*(sram_ptr)>0) ;
 
             }
-					
+
 		}
 }
 
 // =============================================
 // === Draw a line
 // =============================================
-//plot a line 
-//at x1,y1 to x2,y2 with color 
+//plot a line
+//at x1,y1 to x2,y2 with color
 //Code is from David Rodgers,
 //"Procedural Elements of Computer Graphics",1985
 void VGA_line(int x1, int y1, int x2, int y2, short c) {
@@ -851,7 +856,7 @@ void VGA_line(int x1, int y1, int x2, int y2, short c) {
 	signed int s1,s2, xchange;
      signed int x,y;
 	char *pixel_ptr ;
-	
+
 	/* check and fix line coordinates to be valid */
 	if (x1>639) x1 = 639;
 	if (y1>479) y1 = 479;
@@ -861,10 +866,10 @@ void VGA_line(int x1, int y1, int x2, int y2, short c) {
 	if (y1<0) y1 = 0;
 	if (x2<0) x2 = 0;
 	if (y2<0) y2 = 0;
-        
+
 	x = x1;
 	y = y1;
-	
+
 	//take absolute value
 	if (x2 < x1) {
 		dx = x1 - x2;
@@ -896,24 +901,24 @@ void VGA_line(int x1, int y1, int x2, int y2, short c) {
 		s2 = 1;
 	}
 
-	xchange = 0;   
+	xchange = 0;
 
 	if (dy>dx) {
 		temp = dx;
 		dx = dy;
 		dy = temp;
 		xchange = 1;
-	} 
+	}
 
-	e = ((int)dy<<1) - dx;  
-	 
+	e = ((int)dy<<1) - dx;
+
 	for (j=0; j<=dx; j++) {
 		//video_pt(x,y,c); //640x480
 		VGA_PIXEL(x, y, c);
-		//pixel_ptr = (char *)vga_pixel_ptr + (y<<10)+ x; 
+		//pixel_ptr = (char *)vga_pixel_ptr + (y<<10)+ x;
 		// set pixel color
-		//*(char *)pixel_ptr = c;	
-		 
+		//*(char *)pixel_ptr = c;
+
 		if (e>=0) {
 			if (xchange==1) x = x + s1;
 			else y = y + s2;
@@ -927,13 +932,13 @@ void VGA_line(int x1, int y1, int x2, int y2, short c) {
 	}
 }
 
-/// /// ///////////////////////////////////// 
+/// /// /////////////////////////////////////
 /// end /////////////////////////////////////
               </code></pre>
       </div>
-      
+
       <div class="row">
-		
+
 	    <hr id='codeB'>
               <h2>Code Appendix B (Verilog Code)</h2>
               <pre><code>
@@ -986,7 +991,7 @@ module DE1_SoC_Computer (
 	// 40-Pin Headers
 	GPIO_0,
 	GPIO_1,
-	
+
 	// Seven Segment Displays
 	HEX0,
 	HEX1,
@@ -1008,7 +1013,7 @@ module DE1_SoC_Computer (
 	// PS2 Ports
 	PS2_CLK,
 	PS2_DAT,
-	
+
 	PS2_CLK2,
 	PS2_DAT2,
 
@@ -1035,7 +1040,7 @@ module DE1_SoC_Computer (
 	////////////////////////////////////
 	// HPS Pins
 	////////////////////////////////////
-	
+
 	// DDR3 SDRAM
 	HPS_DDR3_ADDR,
 	HPS_DDR3_BA,
@@ -1072,10 +1077,10 @@ module DE1_SoC_Computer (
 
 	// Accelerometer
 	HPS_GSENSOR_INT,
-		
+
 	// General Purpose I/O
 	HPS_GPIO,
-		
+
 	// I2C
 	HPS_I2C_CONTROL,
 	HPS_I2C1_SCLK,
@@ -1088,7 +1093,7 @@ module DE1_SoC_Computer (
 
 	// LED
 	HPS_LED,
-		
+
 	// SD Card
 	HPS_SD_CLK,
 	HPS_SD_CMD,
@@ -1217,7 +1222,7 @@ output					VGA_VS;
 ////////////////////////////////////
 // HPS Pins
 ////////////////////////////////////
-	
+
 // DDR3 SDRAM
 output		[14: 0]	HPS_DDR3_ADDR;
 output		[ 2: 0]  HPS_DDR3_BA;
@@ -1308,7 +1313,7 @@ wire [31:0] audio_data_right_address = 32'h0000304c ;  // Avalon address +12
 wire			[15: 0]	hex3_hex0;
 //wire			[15: 0]	hex5_hex4;
 
-//assign HEX0 = ~hex3_hex0[ 6: 0]; // hex3_hex0[ 6: 0]; 
+//assign HEX0 = ~hex3_hex0[ 6: 0]; // hex3_hex0[ 6: 0];
 //assign HEX1 = ~hex3_hex0[14: 8];
 //assign HEX2 = ~hex3_hex0[22:16];
 //assign HEX3 = ~hex3_hex0[30:24];
@@ -1330,7 +1335,7 @@ assign HEX0 = 7'b1111111;
 // computes DDS for sine wave and fills audio FIFO
 
 reg [31:0] bus_addr ; // Avalon address
-// see 
+// see
 // ftp://ftp.altera.com/up/pub/Altera_Material/15.1/University_Program_IP_Cores/Audio_Video/Audio.pdf
 // for addresses
 wire [31:0] audio_base_address = 32'h00003040 ;  // Avalon address
@@ -1393,13 +1398,13 @@ always @(posedge CLOCK_50) begin //CLOCK_50
 		sample_array[2]  <= 27'b_0;
 		sample_array[1]  <= 27'b_0;
 		sample_array[0]  <= 27'b_0;
-		
+
 	end
 	else begin
 		// timer just for deubgging
 		audio_timer <= audio_timer + 1;
 	end
-	
+
 	// === writing stereo to the audio FIFO ==========
 	// set up read FIFO available space
 	if (audio_state==4'd0) begin
@@ -1408,7 +1413,7 @@ always @(posedge CLOCK_50) begin //CLOCK_50
 		bus_byte_enable <= 4'b1111;
 		audio_state <= 4'd1 ; // wait for read ACK
 	end
-	
+
 	// wait for read ACK and read the fifo available
 	// bus ACK is high when data is available
 	if (audio_state==4'd1 && bus_ack==1) begin
@@ -1418,23 +1423,23 @@ always @(posedge CLOCK_50) begin //CLOCK_50
 		// end the read
 		bus_read <= 1'b0 ;
 	end
-	
+
 	// When there is room in the FIFO
 	// -- start write to fifo for each channel
 	// -- first the left channel
-	if (audio_state==4'd2 && fifo_space>8'd2) begin // 
-		audio_state <= 4'd3;	
+	if (audio_state==4'd2 && fifo_space>8'd2) begin //
+		audio_state <= 4'd3;
 		bus_write_data <= left_audio_input ;
 		bus_addr <= audio_data_left_address ;
 		bus_byte_enable <= 4'b1111;
 		bus_write <= 1'b1 ;
-	end	
+	end
 	// if no space, try again later
 	else if (audio_state==4'd2 && fifo_space<=8'd2) begin
 		audio_state <= 4'b0 ;
 	end
-	
-	// detect bus-transaction-complete ACK 
+
+	// detect bus-transaction-complete ACK
 	// for left channel write
 	// You MUST do this check
 	if (audio_state==4'd3 && bus_ack==1) begin
@@ -1442,13 +1447,13 @@ always @(posedge CLOCK_50) begin //CLOCK_50
 		//state <= 4'd0 ; // left channel only!
 		bus_write <= 0;
 	end
-	
+
 	// -- now the right channel
-	if (audio_state==4'd4) begin // 
-		audio_state <= 4'd5;	
+	if (audio_state==4'd4) begin //
+		audio_state <= 4'd5;
 		// loop back audio input data
 		bus_write_data <= right_audio_input ;
-		
+
 		//shift audio sample array
 		sample_array[20]<= sample_array[19];
 		sample_array[19] <= sample_array[18];
@@ -1471,11 +1476,11 @@ always @(posedge CLOCK_50) begin //CLOCK_50
 		sample_array[2] <= sample_array[1];
 		sample_array[1] <= sample_array[0];
 		sample_array[0] <= (right_audio_input[26:0]) ;
-		
+
 		bus_addr <= audio_data_right_address ;
 		bus_write <= 1'b1 ;
-	end	
-	
+	end
+
 	// detect bus-transaction-complete ACK
 	// for right channel write
 	// You MUST do this check
@@ -1484,7 +1489,7 @@ always @(posedge CLOCK_50) begin //CLOCK_50
 		audio_state <= 4'd6 ; // for read/write  function
 		bus_write <= 0;
 	end
-	
+
 	// === reading stereo from the audio FIFO ==========
 	// set up read FIFO for available read values
 	if (audio_state==4'd6 ) begin
@@ -1493,7 +1498,7 @@ always @(posedge CLOCK_50) begin //CLOCK_50
 		bus_byte_enable <= 4'b1111;
 		audio_state <= 4'd7 ; // wait for read ACK
 	end
-	
+
 	// wait for read ACK and read the fifo available
 	// bus ACK is high when data is available
 	if (audio_state==4'd7 && bus_ack==1) begin
@@ -1504,53 +1509,53 @@ always @(posedge CLOCK_50) begin //CLOCK_50
 		// end the read
 		bus_read <= 1'b0 ;
 	end
-	
+
 	// When there is data in the read FIFO
 	// -- read it from both channels
 	// -- first the left channel
-	if (audio_state==4'd8 && fifo_space>8'd0) begin // 
-		audio_state <= 4'd9;	
+	if (audio_state==4'd8 && fifo_space>8'd0) begin //
+		audio_state <= 4'd9;
 		bus_addr <= audio_data_left_address ;
 		bus_byte_enable <= 4'b1111;
 		bus_read <= 1'b1 ;
-	end	
+	end
 	// if no data, try again later
 	else if (audio_state==4'd8 && fifo_space<=8'd0) begin
 		audio_state <= 4'b0 ;
 	end
-	
-	// detect bus-transaction-complete ACK 
+
+	// detect bus-transaction-complete ACK
 	// for left channel read
 	// You MUST do this check
 	if (audio_state==4'd9 && bus_ack==1) begin
 		audio_state <= 4'd10 ; // include right channel
-		left_audio_input <= bus_read_data; //((bus_read_data < 0) && SW[2]) ? 
+		left_audio_input <= bus_read_data; //((bus_read_data < 0) && SW[2]) ?
 									//(0 - bus_read_data) : bus_read_data;
 		bus_read <= 0;
 	end
-	
+
 	// When there is data in the read FIFO
 	// -- read it from both channels
 	// -- now right channel
-	if (audio_state==4'd10) begin // 
-		audio_state <= 4'd11;	
+	if (audio_state==4'd10) begin //
+		audio_state <= 4'd11;
 		bus_addr <= audio_data_right_address ;
 		bus_byte_enable <= 4'b1111;
 		bus_read <= 1'b1 ;
-	end	
-	
-	// detect bus-transaction-complete ACK 
+	end
+
+	// detect bus-transaction-complete ACK
 	// for right channel read
 	// You MUST do this check
 	if (audio_state==4'd11 && bus_ack==1) begin
 		audio_state <= 4'd12 ; // back to beginning
-		right_audio_input <= bus_read_data;//((bus_read_data < 0) && SW[2]) ? 
+		right_audio_input <= bus_read_data;//((bus_read_data < 0) && SW[2]) ?
 									//(0 - bus_read_data) : bus_read_data;
 		// set the data-ready strobe
 		audio_input_ready <= 1'b1;
 		bus_read <= 0;
 	end
-	
+
 	// wait 1 cycle data-ready strobe
 	if (audio_state==4'd12) begin
 		audio_state <= 4'd13 ; // back to beginning
@@ -1561,7 +1566,7 @@ always @(posedge CLOCK_50) begin //CLOCK_50
 		audio_state <= 4'd0 ; // back to beginning
 		audio_input_ready <= 1'b0;
 	end
-	
+
 end // always @(posedge state_clock)
 
 wire signed [31:0] right_audio_input_export, debug1, debug2, debug3;
@@ -1578,7 +1583,7 @@ assign right_audio_input_export = right_audio_input;
 // --Check for sram address=0 nonzero, which means that
 //   HPS wrote some new data.
 //
-// --Read sram address 1 and 2 to get x1, y1 
+// --Read sram address 1 and 2 to get x1, y1
 //   left-most x, upper-most y
 // --Read sram address 3 and 4 to get x2, y2
 //   right-most x, lower-most y
@@ -1592,7 +1597,7 @@ assign right_audio_input_export = right_audio_input;
 
 wire [31:0] sram_readdata ;
 reg [31:0] data_buffer, sram_writedata ;
-reg [7:0] sram_address; 
+reg [7:0] sram_address;
 reg sram_write ;
 wire sram_clken = 1'b1;
 wire sram_chipselect = 1'b1;
@@ -1606,7 +1611,7 @@ reg [31:0] timer ; // may need to throttle write-rate
 //=======================================================
 wire [31:0] vga_out_base_address = 32'h0000_0000 ;  // vga base addr
 reg [7:0] vga_sram_writedata ;
-reg [31:0] vga_sram_address; 
+reg [31:0] vga_sram_address;
 reg vga_sram_write ;
 wire vga_sram_clken = 1'b1;
 wire vga_sram_chipselect = 1'b1;
@@ -1632,19 +1637,19 @@ always @(posedge CLOCK_50) begin // CLOCK_50
 		// general purpose tick counter
 		timer <= timer + 1;
 	end
-	
+
 	if (~KEY[1]) begin
 		mode <= 2'd0;
 	end
-	
+
 	if (~KEY[2]) begin
 		mode <= 2'd1;
 	end
-	
+
 	if (~KEY[3]) begin
 		mode <= 2'd2;
 	end
-	
+
 	// --------------------------------------
 	// did the HPS send a command
 	// --- set up read for HPS data-ready ---
@@ -1662,17 +1667,17 @@ always @(posedge CLOCK_50) begin // CLOCK_50
 		data_buffer <= sram_readdata ;
 		sram_write <= 1'b0 ;
 		state <= 8'd3 ;
-	end 
-	
+	end
+
 	// --------------------------------------
-	// --- is there new command? --- 
+	// --- is there new command? ---
 	if (state == 8'd3) begin
 		// if (addr 0)==0 try again
 		if (data_buffer==0) state <= 8'd0 ;
 		// if nonzero, do the add
 		else state <= 8'd4 ;
-	end 
-	
+	end
+
 	// --------------------------------------
 	// --- read first Qsys sram: x1 ---
 	if (state == 8'd4) begin
@@ -1684,13 +1689,13 @@ always @(posedge CLOCK_50) begin // CLOCK_50
 	if (state == 8'd5) begin
 		state <= 8'd6 ;
 	end
-	// do data-read x1 
+	// do data-read x1
 	if (state == 8'd6) begin
 		x1 <= sram_readdata ;
 		sram_write <= 1'b0 ;
 		state <= 8'd7 ;
-	end 
-	
+	end
+
 	// --------------------------------------
 	// --- read second Qsys sram: y1 ---
 	if (state == 8'd7) begin
@@ -1707,8 +1712,8 @@ always @(posedge CLOCK_50) begin // CLOCK_50
 		y1 <= sram_readdata ;
 		sram_write <= 1'b0 ;
 		state <= 8'd10 ;
-	end 
-	
+	end
+
 	// --------------------------------------
 	// --- read third Qsys sram: x2 ---
 	if (state == 8'd10) begin
@@ -1725,8 +1730,8 @@ always @(posedge CLOCK_50) begin // CLOCK_50
 		x2 <= sram_readdata ;
 		sram_write <= 1'b0 ;
 		state <= 8'd13 ;
-	end 
-	
+	end
+
 	// --------------------------------------
 	// --- read fourth Qsys sram: y2 ---
 	if (state == 8'd13) begin
@@ -1743,8 +1748,8 @@ always @(posedge CLOCK_50) begin // CLOCK_50
 		y2 <= sram_readdata ;
 		sram_write <= 1'b0 ;
 		state <= 8'd16 ;
-	end 
-	
+	end
+
 	// --------------------------------------
 	// --- read fifth Qsys sram: color ---
 	if (state == 8'd16) begin
@@ -1765,8 +1770,8 @@ always @(posedge CLOCK_50) begin // CLOCK_50
 		// for the next phase of the state machine
 		vga_x_cood <= x1 ;
 		vga_y_cood <= y1 ;
-	end 
-	
+	end
+
 
 	// --------------------------------------
 	// Now have all info, so:
@@ -1775,7 +1780,7 @@ always @(posedge CLOCK_50) begin // CLOCK_50
 	if (state==8'd19) begin // && ((timer & 15)==0)
 		vga_sram_write <= 1'b1;
 		// compute address
-	   vga_sram_address <= vga_out_base_address + {22'b0, vga_x_cood} + ({22'b0,vga_y_cood}*640) ; 
+	   vga_sram_address <= vga_out_base_address + {22'b0, vga_x_cood} + ({22'b0,vga_y_cood}*640) ;
 		// data
 		vga_sram_writedata <= pixel_color  ;
 		// iterate through all x for each y in the list
@@ -1784,14 +1789,14 @@ always @(posedge CLOCK_50) begin // CLOCK_50
 		end
 		else begin
 			vga_x_cood <= x1 ;
-			vga_y_cood <= vga_y_cood + 10'd1 ;	
+			vga_y_cood <= vga_y_cood + 10'd1 ;
 		end
 		if (vga_x_cood>=x2 && vga_y_cood>=y2) state <= 8'd22 ; // ending
 		else state  <= 8'd19 ;
 		// write a point
-		state <= 8'd22 ; 
+		state <= 8'd22 ;
 	end
-	
+
 	// write a pixel to VGA memory
 	if (state==20) begin
 		vga_sram_write <= 1'b1;
@@ -1801,8 +1806,8 @@ always @(posedge CLOCK_50) begin // CLOCK_50
 		if (vga_x_cood>=x2 && vga_y_cood>=y2) state <= 8'd22 ; // ending
 		else state  <= 8'd19 ;
 	end
-	
-	
+
+
 	// -- finished: --
 	// -- set up done flag to Qsys sram 0 ---
 	if (state == 8'd22) begin
@@ -1813,8 +1818,8 @@ always @(posedge CLOCK_50) begin // CLOCK_50
 		sram_writedata <= 32'b0 ;
 		sram_write <= 1'b1 ;
 		state <= 8'd0 ;
-	end  
-	
+	end
+
 end // always @(posedge state_clock)
 
 assign debug1 = mode; //assign value to boid boundaries
@@ -1969,15 +1974,15 @@ wire signed [31:0] freq15 ;
 //calculating filtered output
 // repeat 11 times via generate per filter
 genvar i;
-generate 
+generate
 	for (i = 0; i < 21; i = i + 1) begin: mult1
-		
+
 		signed_mult mult1(
 			.out(fir_out1[i]),
 			.a(sample_array[i]),
 			.b(weights1[i])
 		);
-			
+
 	end
 endgenerate
 
@@ -1986,15 +1991,15 @@ assign debug3 = sample_array[0];
 
 
 genvar j;
-generate 
+generate
 	for (j = 0; j < 21; j = j + 1) begin: mult2
-		
+
 		signed_mult mult2(
 			.out(fir_out2[j]),
 			.a(sample_array[j]),
 			.b(weights2[j])
 		);
-			
+
 	end
 endgenerate
 
@@ -2003,15 +2008,15 @@ assign freq2 = fir_out2[0] +  fir_out2[1] +  fir_out2[2] +  fir_out2[3] +  fir_o
 
 
 genvar k;
-generate 
+generate
 	for (k = 0; k < 21; k = k + 1) begin: mult3
-		
+
 		signed_mult mult3(
 			.out(fir_out3[k]),
 			.a(sample_array[k]),
 			.b(weights3[k])
 		);
-			
+
 	end
 endgenerate
 
@@ -2020,15 +2025,15 @@ assign freq3 = fir_out3[0] +  fir_out3[1] +  fir_out3[2] +  fir_out3[3] +  fir_o
 
 
 genvar l;
-generate 
+generate
 	for (l = 0; l < 21; l = l + 1) begin: mult4
-		
+
 		signed_mult mult4(
 			.out(fir_out4[l]),
 			.a(sample_array[l]),
 			.b(weights4[l])
 		);
-			
+
 	end
 endgenerate
 
@@ -2036,15 +2041,15 @@ assign freq4 = fir_out4[0] +  fir_out4[1] +  fir_out4[2] +  fir_out4[3] +  fir_o
 
 
 genvar m;
-generate 
+generate
 	for (m = 0; m < 21; m = m + 1) begin: mult5
-		
+
 		signed_mult mult5(
 			.out(fir_out5[m]),
 			.a(sample_array[m]),
 			.b(weights5[m])
 		);
-			
+
 	end
 endgenerate
 
@@ -2060,7 +2065,7 @@ Computer_System The_System (
 	////////////////////////////////////
 	// FPGA Side
 	////////////////////////////////////
-	
+
 	//PIO ports
 	.right_audio_input_external_connection_export(right_audio_input_export),
 	.debug1_external_connection_export(debug1),
@@ -2071,7 +2076,7 @@ Computer_System The_System (
 	.freq3_external_connection_export(freq3),
 	.freq4_external_connection_export(freq4),
 	.freq5_external_connection_export(freq5),
-	
+
 	// Audio Subsystem
 	.audio_pll_ref_clk_clk					(CLOCK3_50),
 	.audio_pll_ref_reset_reset				(1'b0),
@@ -2083,42 +2088,42 @@ Computer_System The_System (
 	.audio_DACLRCK								(AUD_DACLRCK),
 
 	// bus-master state machine interface
-	.bus_master_audio_external_interface_address     (bus_addr),     
-	.bus_master_audio_external_interface_byte_enable (bus_byte_enable), 
-	.bus_master_audio_external_interface_read        (bus_read),        
-	.bus_master_audio_external_interface_write       (bus_write),       
-	.bus_master_audio_external_interface_write_data  (bus_write_data),  
-	.bus_master_audio_external_interface_acknowledge (bus_ack),                                  
-	.bus_master_audio_external_interface_read_data   (bus_read_data),   
+	.bus_master_audio_external_interface_address     (bus_addr),
+	.bus_master_audio_external_interface_byte_enable (bus_byte_enable),
+	.bus_master_audio_external_interface_read        (bus_read),
+	.bus_master_audio_external_interface_write       (bus_write),
+	.bus_master_audio_external_interface_write_data  (bus_write_data),
+	.bus_master_audio_external_interface_acknowledge (bus_ack),
+	.bus_master_audio_external_interface_read_data   (bus_read_data),
 
 	// Global signals
 	.system_pll_ref_clk_clk					(CLOCK_50),
 	.system_pll_ref_reset_reset			(1'b0),
-	
+
 	// SRAM shared block with HPS
-	.onchip_sram_s1_address               (sram_address),               
-	.onchip_sram_s1_clken                 (sram_clken),                 
-	.onchip_sram_s1_chipselect            (sram_chipselect),            
-	.onchip_sram_s1_write                 (sram_write),                 
-	.onchip_sram_s1_readdata              (sram_readdata),              
-	.onchip_sram_s1_writedata             (sram_writedata),             
-	.onchip_sram_s1_byteenable            (4'b1111), 
-	
+	.onchip_sram_s1_address               (sram_address),
+	.onchip_sram_s1_clken                 (sram_clken),
+	.onchip_sram_s1_chipselect            (sram_chipselect),
+	.onchip_sram_s1_write                 (sram_write),
+	.onchip_sram_s1_readdata              (sram_readdata),
+	.onchip_sram_s1_writedata             (sram_writedata),
+	.onchip_sram_s1_byteenable            (4'b1111),
+
 	//  sram to video
-	.onchip_vga_buffer_s1_address    (vga_sram_address),    
-	.onchip_vga_buffer_s1_clken      (vga_sram_clken),      
-	.onchip_vga_buffer_s1_chipselect (vga_sram_chipselect), 
-	.onchip_vga_buffer_s1_write      (vga_sram_write),      
+	.onchip_vga_buffer_s1_address    (vga_sram_address),
+	.onchip_vga_buffer_s1_clken      (vga_sram_clken),
+	.onchip_vga_buffer_s1_chipselect (vga_sram_chipselect),
+	.onchip_vga_buffer_s1_write      (vga_sram_write),
 	.onchip_vga_buffer_s1_readdata   (),   // never read from vga here
-	.onchip_vga_buffer_s1_writedata  (vga_sram_writedata),   
+	.onchip_vga_buffer_s1_writedata  (vga_sram_writedata),
 
 	// AV Config
 	.av_config_SCLK							(FPGA_I2C_SCLK),
 	.av_config_SDAT							(FPGA_I2C_SDAT),
 
 	// 50 MHz clock bridge
-	.clock_bridge_0_in_clk_clk            (CLOCK_50), //(CLOCK_50), 
-	
+	.clock_bridge_0_in_clk_clk            (CLOCK_50), //(CLOCK_50),
+
 	// VGA Subsystem
 	.vga_pll_ref_clk_clk 					(CLOCK2_50),
 	.vga_pll_ref_reset_reset				(1'b0),
@@ -2130,7 +2135,7 @@ Computer_System The_System (
 	.vga_R										(VGA_R),
 	.vga_G										(VGA_G),
 	.vga_B										(VGA_B),
-		
+
 	// SDRAM
    .sdram_clk_clk								(DRAM_CLK),
    .sdram_addr									(DRAM_ADDR),
@@ -2142,7 +2147,7 @@ Computer_System The_System (
 	.sdram_dqm									({DRAM_UDQM,DRAM_LDQM}),
 	.sdram_ras_n								(DRAM_RAS_N),
 	.sdram_we_n									(DRAM_WE_N),
-	
+
 	////////////////////////////////////
 	// HPS Side
 	////////////////////////////////////
@@ -2163,7 +2168,7 @@ Computer_System The_System (
 	.memory_mem_odt		(HPS_DDR3_ODT),
 	.memory_mem_dm			(HPS_DDR3_DM),
 	.memory_oct_rzqin		(HPS_DDR3_RZQ),
-		  
+
 	// Ethernet
 	.hps_io_hps_io_gpio_inst_GPIO35	(HPS_ENET_INT_N),
 	.hps_io_hps_io_emac1_inst_TX_CLK	(HPS_ENET_GTX_CLK),
