@@ -77,29 +77,28 @@
               <h2>Project Introduction</h2>
               <p style="text-align: left;padding: 0px 30px;">
                 Dancing Boids visualizes music using the boid (bird-oid object) flocking simulation, where the flocks of boids spread apart or group up based on the frequencies of the music.
-                <br><br>
-                Going into more detail, this system is implemented on the DE1-SoC Board which includes both an FPGA that can run Verilog code and an ARM-based HPS processor that can run C code. This system consists of three main components. This first is an audio component on the FPGA side that takes audio input from the audio jack and extracts the highest-amplitude frequency. The second is a calculation component on the HPS side that takes this frequency and performs boid flocking calculations based on it. The third and final piece is a display component on the FPGA side that takes the boid calculations and displays them to the VGA screen.
-                <br><br>
-                We chose to pursue this project because we enjoyed the boid project from ECE 4760, and we wanted to expand upon it and see new applications to which it can be applied. Members of our team also had previous experience working with audio visualization which would be helpful for this project. Finally, we all enjoyed music and simply thought it would be cool to see what flocks of boids reacting to music would look like.
               </p>
       </div>
-
-    <hr id='obj'>
-
       <div class="row">
           <div class="col-md-4" style="text-align:center;">
           <img class="img-rounded" src="pics/DE1-SoC.png" alt="DE1-SoC" width="240" height="240">
           </div>
-          <div class="col-md-8" style="font-size:18px;">
-          <h2>High Level Design:</h2>
-          <ul>
-              <li>Rationale and sources of your project idea</li>
-              <li>background math</li>
-              <li>logical structure</li>
-              <li>hardware/software tradeoffs</li>
-              <li>Discuss existing patents, copyrights, and trademarks which are relevant to your project.</li>
-          </ul>
-          </div>
+          <p>
+            Going into more detail, this system is implemented on the DE1-SoC Board which includes both an FPGA and an ARM-based HPS processor that can run C code. This system consists of three main components. This first is an audio component that takes audio input from the audio jack and extracts the highest-amplitude frequency. This was implemented on the FPGA side as it was both simple and efficient to approach this using several FIR filters in RTL design. The second piece is a calculation component that takes this frequency and performs boid flocking calculations based on it. This was implemented on the HPS side as it was difficult to efficiently parallelize multiple boids with each boid interacting with each other in RTL design. The third and final piece is a display component that takes the boid calculations and displays them to the VGA screen. This was implemented on the FPGA side as we found in previous assignments that it was significantly faster than displaying using the HPS.
+          </p>
+      </div>
+
+    <hr id='obj'>
+      <div style="text-align:center;">
+              <h2>High Level Design</h2>
+              <p style="text-align: left;padding: 0px 30px;">
+                We chose to pursue this project because we enjoyed the boid project from ECE 4760 and wanted to expand upon it and see new applications to which it can be applied. Members of our team also had previous experience working with audio visualization from ECE 5725 which would be helpful for this project. Finally, we all enjoyed music and simply thought it would be cool to see what flocks of boids reacting to music would look like.
+                <br><br>
+                Some background information on the math used in this project would be helpful before going into more detail. We initially used a Fast Fourier Transform (FFT) in our baseline design to obtain the highest amplitude frequency from the input audio signal with very high resolution. However, implementing an FFT on the FPGA side is very difficult, and high resolution is not required for music visualization. Therefore, we instead chose to use FIR bandpass filters to give us a coarse approximation of the highest amplitude frequency. To do this, we created five FIR bandpass filters, with each filter covering a specific frequency range. More specifically, we had a filter for each of these ranges: 200 Hz to 550 Hz, 550 Hz to 900 Hz, 900 Hz to 1250 Hz, 1250 Hz to 1600 Hz, and 1600 to 2000 Hz. When an audio signal with frequencies between 200 Hz to 2000 Hz is inputted, the five bandpass filters will output the filtered amplitudes for each of their ranges. We can then choose the filter with the highest amplitude to find a rough approximation of the highest amplitude frequency. For example, if a 700 Hz signal is put into the FIR filters, the bandpass filter set to 550 Hz to 900 Hz will have the highest amplitude, so we can conclude that the signal is between 550-900 Hz and we can estimate it as 725 Hz (the middle of 550 and 900):
+              </p>
+              <div style="text-align:center;">
+                  <img class="img-rounded" src="pics/FIR_diagram_1.png" alt="Generic placeholder image" style="width:50%;">
+              </div>
       </div>
 
     <hr id='design'>
