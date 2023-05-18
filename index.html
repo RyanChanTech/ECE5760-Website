@@ -132,7 +132,7 @@
 	     </p>
 	      
 	      <h3> Audio FFT Design and Testing</h3>
-	      <p style="text-align: left;padding: 0px 30px;"> To take audio input, the audio module FIFO was implemented. The state machines were also added to real the stereo from the audio FIFO. With the audio input, we implemented the FFT in HPS, using the guide provided in ECE4760. The Cooly-Tukey FFT splits the discrete fourier transforms (DFT) into smaller DFTs. It then divides the length of each summation. The recursive algorithm allows us to reduce computation time by taking advantage of the divisiveness of the sums.
+	      <p style="text-align: left;padding: 0px 30px;"> To take audio input, the audio module FIFO was implemented. The state machines were also added to real the stereo from the audio FIFO. With the audio input, we implemented the FFT in HPS, using the guide provided in ECE4760. The Cooly-Tukey FFT algorithm is described above.
 	     </p>
 	      <p style="text-align: left;padding: 0px 30px;"> To test the functionality of FFT of audio input, we used a tone generator and serial output to see the filtered data. When we plotted the output of FFT while running the same tone generator, we experienced that the filtered output was discrete, showing the step function when plotted. The issue was found to be the sampling rate. It was sampling the FPGA too fast so it was getting the same value before the update. After the change, we could see the sine wave in the plot. We also confirmed that the FFT calculation output from audio sampling matches the frequency of the tone generator. 
 	     </p>
